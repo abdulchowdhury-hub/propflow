@@ -71,6 +71,7 @@ function initialize() {
       amount REAL NOT NULL DEFAULT 0,
       vendor TEXT DEFAULT '',
       notes TEXT DEFAULT '',
+      receipt_path TEXT DEFAULT '',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
     );
@@ -79,10 +80,61 @@ function initialize() {
     CREATE INDEX IF NOT EXISTS idx_income_property ON income(property_id);
     CREATE INDEX IF NOT EXISTS idx_income_tenant ON income(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_income_date ON income(date);
+    CREATE TABLE IF NOT EXISTS documents (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      entity_type TEXT NOT NULL,
+      entity_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      file_type TEXT DEFAULT '',
+      file_size INTEGER DEFAULT 0,
+      uploaded_by TEXT DEFAULT '',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_expenses_property ON expenses(property_id);
     CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
     CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+    CREATE INDEX IF NOT EXISTS idx_documents_entity ON documents(entity_type, entity_id);
+
+    CREATE TABLE IF NOT EXISTS maintenance (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      property_id INTEGER NOT NULL,
+      tenant_id INTEGER,
+      title TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      category TEXT DEFAULT 'general',
+      priority TEXT DEFAULT 'medium',
+      status TEXT DEFAULT 'open',
+      assigned_to TEXT DEFAULT '',
+      cost REAL DEFAULT 0,
+      date_reported TEXT NOT NULL,
+      date_completed TEXT DEFAULT '',
+      notes TEXT DEFAULT '',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE,
+      FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_maintenance_property ON maintenance(property_id);
+    CREATE INDEX IF NOT EXISTS idx_maintenance_status ON maintenance(status);
   `);
+
+  // Migration: add receipt_path column to expenses if not present
+  try {
+    db.prepare("SELECT receipt_path FROM expenses LIMIT 1").get();
+  } catch (e) {
+    db.exec("ALTER TABLE expenses ADD COLUMN receipt_path TEXT DEFAULT ''");
+    console.log('Migrated: added receipt_path column to expenses');
+  }
+
+  // Migration: add method2/amount2 columns to income if not present
+  try {
+    db.prepare("SELECT method2 FROM income LIMIT 1").get();
+  } catch (e) {
+    db.exec("ALTER TABLE income ADD COLUMN method2 TEXT DEFAULT ''");
+    db.exec("ALTER TABLE income ADD COLUMN amount2 REAL DEFAULT 0");
+    console.log('Migrated: added method2/amount2 to income');
+  }
 
   // Seed an admin user if none exist
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
