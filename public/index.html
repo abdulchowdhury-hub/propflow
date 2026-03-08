@@ -19,92 +19,80 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='4' y='12' width='10' height='16' rx='1' fill='%230e7490'/><rect x='18' y='6' width='10' height='22' rx='1' fill='%230e7490' opacity='.7'/><rect x='7' y='15' width='4' height='3' rx='.5' fill='white'/><rect x='7' y='21' width='4' height='3' rx='.5' fill='white'/><rect x='21' y='9' width='4' height='3' rx='.5' fill='white'/><rect x='21' y='15' width='4' height='3' rx='.5' fill='white'/><rect x='21' y='21' width='4' height='3' rx='.5' fill='white'/></svg>">
 </head>
 <body>
-  <a href="#main-content" class="sr-only" style="position:absolute;top:0;left:0;padding:8px;background:var(--color-primary);color:var(--color-text-inverse);z-index:9999;">Skip to content</a>
+  <a href="#main-content" class="sr-only skip-link">Skip to content</a>
 
-  <div class="dashboard">
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-label="PropFlow logo">
-            <rect x="4" y="12" width="10" height="16" rx="1.5" fill="currentColor"/>
-            <rect x="18" y="6" width="10" height="22" rx="1.5" fill="currentColor" opacity="0.6"/>
-            <rect x="7" y="15" width="4" height="3" rx="0.5" fill="var(--color-surface, white)"/>
-            <rect x="7" y="21" width="4" height="3" rx="0.5" fill="var(--color-surface, white)"/>
-            <rect x="21" y="9" width="4" height="3" rx="0.5" fill="var(--color-surface, white)"/>
-            <rect x="21" y="15" width="4" height="3" rx="0.5" fill="var(--color-surface, white)"/>
-            <rect x="21" y="21" width="4" height="3" rx="0.5" fill="var(--color-surface, white)"/>
-          </svg>
-          <span class="logo-text">PropFlow</span>
-        </div>
-        <button class="sidebar-close" id="sidebar-close" aria-label="Close menu">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
+  <!-- Top Navigation Bar -->
+  <header class="app-topbar" id="app-topbar">
+    <div class="topbar-logo">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-label="PropFlow logo">
+        <rect x="4" y="12" width="10" height="16" rx="1.5" fill="currentColor"/>
+        <rect x="18" y="6" width="10" height="22" rx="1.5" fill="currentColor" opacity="0.6"/>
+        <rect x="7" y="15" width="4" height="3" rx="0.5" fill="var(--color-surface, white)"/>
+        <rect x="7" y="21" width="4" height="3" rx="0.5" fill="var(--color-surface, white)"/>
+        <rect x="21" y="9" width="4" height="3" rx="0.5" fill="var(--color-surface, white)"/>
+        <rect x="21" y="15" width="4" height="3" rx="0.5" fill="var(--color-surface, white)"/>
+        <rect x="21" y="21" width="4" height="3" rx="0.5" fill="var(--color-surface, white)"/>
+      </svg>
+      <span class="topbar-logo-text">PropFlow</span>
+    </div>
+
+    <nav class="topbar-tabs" id="topbar-tabs" aria-label="Main navigation">
+      <a href="#dashboard" class="tab-btn active" data-page="dashboard">Dashboard</a>
+      <a href="#properties" class="tab-btn" data-page="properties">Properties</a>
+      <a href="#tenants" class="tab-btn" data-page="tenants">Tenants</a>
+      <a href="#income" class="tab-btn" data-page="income">Income</a>
+      <a href="#expenses" class="tab-btn" data-page="expenses">Expenses</a>
+      <a href="#reports" class="tab-btn" data-page="reports">Reports</a>
+    </nav>
+
+    <div class="topbar-controls">
+      <div class="topbar-user">
+        <div class="user-avatar" id="user-avatar">AC</div>
+        <span class="user-name" id="user-name">Loading...</span>
       </div>
-      <nav class="sidebar-nav" aria-label="Main navigation">
-        <a href="#dashboard" class="nav-item active" data-page="dashboard">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-          <span>Dashboard</span>
-        </a>
-        <a href="#properties" class="nav-item" data-page="properties">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          <span>Properties</span>
-        </a>
-        <a href="#tenants" class="nav-item" data-page="tenants">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-          <span>Tenants</span>
-        </a>
-        <a href="#income" class="nav-item" data-page="income">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-          <span>Income</span>
-        </a>
-        <a href="#expenses" class="nav-item" data-page="expenses">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <span>Expenses</span>
-        </a>
-        <a href="#reports" class="nav-item" data-page="reports">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-          <span>Reports</span>
-        </a>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="user-info">
-          <div class="user-avatar" id="user-avatar">AC</div>
-          <div class="user-details">
-            <span class="user-name" id="user-name">Loading...</span>
-            <span class="user-role" id="user-role">Dynamic Tax Services</span>
-          </div>
-        </div>
-        <button class="logout-btn" id="logout-btn" title="Sign out" style="background:none;border:none;color:var(--color-text-muted);cursor:pointer;padding:6px;border-radius:6px;transition:background 0.2s;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        </button>
+      <button class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="logout-btn" id="logout-btn" title="Sign out" aria-label="Sign out">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+
+    <!-- Mobile hamburger -->
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open navigation">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </header>
+
+  <!-- Mobile nav drawer -->
+  <div class="mobile-nav-overlay" id="mobile-nav-overlay" hidden></div>
+  <div class="mobile-nav-drawer" id="mobile-nav-drawer" hidden>
+    <nav class="mobile-nav-links" id="mobile-nav-links" aria-label="Mobile navigation">
+      <a href="#dashboard" class="mobile-nav-item active" data-page="dashboard">Dashboard</a>
+      <a href="#properties" class="mobile-nav-item" data-page="properties">Properties</a>
+      <a href="#tenants" class="mobile-nav-item" data-page="tenants">Tenants</a>
+      <a href="#income" class="mobile-nav-item" data-page="income">Income</a>
+      <a href="#expenses" class="mobile-nav-item" data-page="expenses">Expenses</a>
+      <a href="#reports" class="mobile-nav-item" data-page="reports">Reports</a>
+    </nav>
+    <div class="mobile-nav-footer">
+      <div class="topbar-user">
+        <div class="user-avatar" id="user-avatar-mobile">AC</div>
+        <span class="user-name" id="user-name-mobile">Loading...</span>
       </div>
-    </aside>
-
-    <!-- Main Area -->
-    <div class="main-area">
-      <header class="topbar">
-        <div class="topbar-left">
-          <button class="hamburger" id="hamburger" aria-label="Open menu">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          </button>
-          <h1 class="page-title" id="page-title">Dashboard</h1>
-        </div>
-        <div class="topbar-right">
-          <button class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          </button>
-        </div>
-      </header>
-
-      <main class="main-content" id="main-content"></main>
-
-      <footer class="app-footer">
-        <span>&copy; 2026 PropFlow · Dynamic Tax Services</span>
-        <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity Computer</a>
-      </footer>
+      <button class="logout-btn" id="logout-btn-mobile" title="Sign out">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
     </div>
   </div>
+
+  <!-- Main Content -->
+  <main class="main-content" id="main-content"></main>
+
+  <footer class="app-footer">
+    <span>&copy; 2026 PropFlow &middot; Dynamic Tax Services</span>
+    <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity Computer</a>
+  </footer>
 
   <!-- Modal -->
   <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" hidden>
