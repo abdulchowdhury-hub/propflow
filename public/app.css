@@ -235,6 +235,11 @@ body {
   z-index: 60;
 }
 
+.mobile-nav-overlay[hidden],
+.mobile-nav-drawer[hidden] {
+  display: none !important;
+}
+
 .mobile-nav-drawer {
   position: fixed;
   top: 0;
