@@ -409,6 +409,15 @@ function renderPropertyDetail(container, propId) {
   var totalIncome = propIncome.reduce(function(s, i) { return s + i.amount; }, 0);
   var totalExpenses = propExpenses.reduce(function(s, e) { return s + e.amount; }, 0);
 
+  // Sort income and expenses by date descending
+  propIncome.sort(function(a, b) { return b.date.localeCompare(a.date) || b.id - a.id; });
+  propExpenses.sort(function(a, b) { return b.date.localeCompare(a.date) || b.id - a.id; });
+
+  // Income summary by status
+  var paidAmt = propIncome.filter(function(i) { return i.status === 'paid'; }).reduce(function(s, i) { return s + i.amount; }, 0);
+  var pendingAmt = propIncome.filter(function(i) { return i.status === 'pending'; }).reduce(function(s, i) { return s + i.amount; }, 0);
+  var lateAmt = propIncome.filter(function(i) { return i.status === 'late'; }).reduce(function(s, i) { return s + i.amount; }, 0);
+
   container.innerHTML = ''
     + '<button class="detail-back" onclick="navigateTo(\'properties\')">&larr; Back to Properties</button>'
     + '<div class="detail-header"><div><h2>' + escapeHtml(prop.name) + '</h2><p class="detail-meta">' + escapeHtml(prop.address) + ', ' + escapeHtml(prop.city) + ', ' + escapeHtml(prop.state) + ' ' + escapeHtml(prop.zip) + ' &middot; ' + escapeHtml(prop.type) + ' &middot; ' + prop.units + ' unit(s)</p></div>'
@@ -419,11 +428,43 @@ function renderPropertyDetail(container, propId) {
     + kpiCard('Total Expenses', fmt(totalExpenses), 'All time')
     + kpiCard('Net', fmt(totalIncome - totalExpenses), totalIncome - totalExpenses >= 0 ? 'positive' : 'negative')
     + '</div>'
-    + '<div class="table-card" style="margin-bottom:var(--space-6)"><div class="table-header"><h3>Tenants</h3></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Unit</th><th>Rent</th><th>Lease</th><th>Status</th></tr></thead><tbody>' + propTenants.map(function(t) { return '<tr><td>' + escapeHtml(t.name) + '</td><td>' + escapeHtml(t.unit) + '</td><td class="amount">' + fmt(t.monthly_rent || t.monthlyRent || 0) + '</td><td>' + fmtDate(t.lease_start || t.leaseStart) + ' \u2013 ' + fmtDate(t.lease_end || t.leaseEnd) + '</td><td><span class="badge ' + badgeClass(t.status) + '">' + escapeHtml(t.status) + '</span></td></tr>'; }).join('') + '</tbody></table></div></div>'
-    + '<div class="chart-grid">'
-    + '<div class="table-card"><div class="table-header"><h3>Income</h3></div><div class="table-wrapper"><table><thead><tr><th>Date</th><th>Tenant</th><th>Amount</th><th>Status</th></tr></thead><tbody>' + propIncome.map(function(i) { return '<tr><td>' + fmtDate(i.date) + '</td><td>' + escapeHtml(getTenantName(i.tenant_id || i.tenantId)) + '</td><td class="amount">' + fmt(i.amount) + '</td><td><span class="badge ' + badgeClass(i.status) + '">' + escapeHtml(i.status) + '</span></td></tr>'; }).join('') + '</tbody></table></div></div>'
-    + '<div class="table-card"><div class="table-header"><h3>Expenses</h3></div><div class="table-wrapper"><table><thead><tr><th>Date</th><th>Category</th><th>Amount</th><th>Vendor</th></tr></thead><tbody>' + propExpenses.map(function(ex) { return '<tr><td>' + fmtDate(ex.date) + '</td><td>' + escapeHtml(ex.category) + '</td><td class="amount">' + fmt(ex.amount) + '</td><td>' + escapeHtml(ex.vendor) + '</td></tr>'; }).join('') + '</tbody></table></div></div>'
-    + '</div>';
+    // Tenants table with actions
+    + '<div class="table-card" style="margin-bottom:var(--space-6)"><div class="table-header"><h3>Tenants (' + propTenants.length + ')</h3><div class="table-actions"><button class="btn btn-primary btn-sm" onclick="openAddTenantModal()">+ Add Tenant</button></div></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Unit</th><th>Rent</th><th>Lease</th><th>Status</th><th>Actions</th></tr></thead><tbody>'
+    + propTenants.map(function(t) {
+      var rent = t.monthly_rent || t.monthlyRent || 0;
+      return '<tr><td><strong>' + escapeHtml(t.name) + '</strong></td><td>' + escapeHtml(t.email) + '</td><td>' + escapeHtml(t.phone) + '</td><td>' + escapeHtml(t.unit) + '</td><td class="amount">' + fmt(rent) + '</td><td>' + fmtDate(t.lease_start || t.leaseStart) + ' \u2013 ' + fmtDate(t.lease_end || t.leaseEnd) + '</td><td><span class="badge ' + badgeClass(t.status) + '">' + escapeHtml(t.status) + '</span></td>'
+        + '<td class="actions-cell"><button class="btn-icon" onclick="openEditTenantModal(' + t.id + ')" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+        + '<button class="btn-icon btn-icon-danger" onclick="deleteTenant(' + t.id + ', \'' + escapeHtml(t.name).replace(/'/g, "\\'") + '\')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td></tr>';
+    }).join('') + '</tbody></table></div></div>'
+    // Income table - full detail with actions
+    + '<div class="table-card" style="margin-bottom:var(--space-6)"><div class="table-header"><h3>Income (' + propIncome.length + ' records)</h3><div class="table-actions"><button class="btn btn-primary btn-sm" onclick="openAddPaymentModal()">+ Record Payment</button></div></div>'
+    + '<div class="summary-bar" style="margin:var(--space-3) var(--space-5)">'
+    + '<div class="summary-item"><span class="summary-label">Total</span><span class="summary-value">' + fmt(totalIncome) + '</span></div>'
+    + '<div class="summary-item"><span class="summary-label">Paid</span><span class="summary-value" style="color:var(--color-success)">' + fmt(paidAmt) + '</span></div>'
+    + '<div class="summary-item"><span class="summary-label">Pending</span><span class="summary-value" style="color:var(--color-warning)">' + fmt(pendingAmt) + '</span></div>'
+    + '<div class="summary-item"><span class="summary-label">Late</span><span class="summary-value" style="color:var(--color-error)">' + fmt(lateAmt) + '</span></div>'
+    + '</div>'
+    + '<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Tenant</th><th>Unit</th><th class="text-right">Amount</th><th>Method</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead><tbody>'
+    + propIncome.map(function(i) {
+      var tid = i.tenant_id || i.tenantId;
+      var tenant = DATA.tenants.find(function(t) { return t.id === tid; });
+      var unit = tenant ? tenant.unit : '\u2014';
+      return '<tr><td>' + fmtDate(i.date) + '</td><td>' + escapeHtml(getTenantName(tid)) + '</td><td>' + escapeHtml(unit) + '</td><td class="text-right amount">' + fmt(i.amount) + '</td><td>' + escapeHtml(i.method) + '</td><td><span class="badge ' + badgeClass(i.status) + '">' + escapeHtml(i.status) + '</span></td><td class="truncate">' + escapeHtml(i.notes) + '</td>'
+        + '<td class="actions-cell"><button class="btn-icon" onclick="openEditIncomeModal(' + i.id + ')" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+        + '<button class="btn-icon btn-icon-danger" onclick="deleteIncome(' + i.id + ')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td></tr>';
+    }).join('') + '</tbody></table></div></div>'
+    // Expenses table - full detail with actions
+    + '<div class="table-card" style="margin-bottom:var(--space-6)"><div class="table-header"><h3>Expenses (' + propExpenses.length + ' records)</h3><div class="table-actions"><button class="btn btn-primary btn-sm" onclick="openAddExpenseModal()">+ Add Expense</button></div></div>'
+    + '<div class="summary-bar" style="margin:var(--space-3) var(--space-5)">'
+    + '<div class="summary-item"><span class="summary-label">Total Expenses</span><span class="summary-value">' + fmt(totalExpenses) + '</span></div>'
+    + '<div class="summary-item"><span class="summary-label">Records</span><span class="summary-value">' + propExpenses.length + '</span></div>'
+    + '</div>'
+    + '<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="text-right">Amount</th><th>Vendor</th><th>Notes</th><th>Actions</th></tr></thead><tbody>'
+    + propExpenses.map(function(e) {
+      return '<tr><td>' + fmtDate(e.date) + '</td><td><span class="badge badge-primary">' + escapeHtml(e.category) + '</span></td><td>' + escapeHtml(e.description) + '</td><td class="text-right amount">' + fmt(e.amount) + '</td><td>' + escapeHtml(e.vendor) + '</td><td class="truncate">' + escapeHtml(e.notes) + '</td>'
+        + '<td class="actions-cell"><button class="btn-icon" onclick="openEditExpenseModal(' + e.id + ')" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+        + '<button class="btn-icon btn-icon-danger" onclick="deleteExpense(' + e.id + ')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td></tr>';
+    }).join('') + '</tbody></table></div></div>';
 
   document.getElementById('page-title').textContent = prop.name;
 }
