@@ -1,0 +1,195 @@
+/* Art direction: Rental property management SaaS → Professional, structured, efficient
+   Palette: Cool neutrals (slate-gray), accent: Professional blue-teal (trust, finance, clarity)
+   Typography: Inter (body/UI) — clean, tabular-nums, gold-standard dashboard font
+   Density: Dense but readable — dashboard with tables, KPIs, charts */
+
+/* ===== TYPE SCALE ===== */
+:root {
+  --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
+  --text-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
+  --text-base: clamp(1rem,     0.95rem + 0.25vw, 1.125rem);
+  --text-lg:   clamp(1.125rem, 1rem    + 0.75vw, 1.5rem);
+  --text-xl:   clamp(1.5rem,   1.2rem  + 1.25vw, 2.25rem);
+  --text-2xl:  clamp(2rem,     1.2rem  + 2.5vw,  3.5rem);
+
+  /* Fonts */
+  --font-body: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+  --font-display: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+
+  /* 4px Spacing System */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Content widths */
+  --content-narrow: 640px;
+  --content-default: 960px;
+  --content-wide: 1200px;
+  --content-full: 100%;
+}
+
+/* ===== PROPFLOW PALETTE — Cool Slate + Professional Blue-Teal ===== */
+
+:root, [data-theme="light"] {
+  /* Surfaces (Cool Slate) */
+  --color-bg:               #f4f5f7;
+  --color-surface:          #ffffff;
+  --color-surface-2:        #f9fafb;
+  --color-surface-offset:   #eef0f3;
+  --color-surface-offset-2: #e5e8ec;
+  --color-surface-dynamic:  #dce0e5;
+  --color-divider:          #d1d5db;
+  --color-border:           #c4c9d2;
+
+  /* Text (Cool Gray) */
+  --color-text:             #111827;
+  --color-text-muted:       #6b7280;
+  --color-text-faint:       #9ca3af;
+  --color-text-inverse:     #ffffff;
+
+  /* Primary Accent (Professional Blue-Teal) */
+  --color-primary:          #0e7490;
+  --color-primary-hover:    #0c5e75;
+  --color-primary-active:   #0a4a5c;
+  --color-primary-highlight: #cce8ef;
+
+  /* Success (Green) */
+  --color-success:          #059669;
+  --color-success-hover:    #047857;
+  --color-success-active:   #065f46;
+  --color-success-highlight: #d1fae5;
+
+  /* Warning (Amber) */
+  --color-warning:          #d97706;
+  --color-warning-hover:    #b45309;
+  --color-warning-active:   #92400e;
+  --color-warning-highlight: #fef3c7;
+
+  /* Error (Red) */
+  --color-error:            #dc2626;
+  --color-error-hover:      #b91c1c;
+  --color-error-active:     #991b1b;
+  --color-error-highlight:  #fee2e2;
+
+  /* Chart palette */
+  --color-chart-1: #0e7490;
+  --color-chart-2: #6366f1;
+  --color-chart-3: #f59e0b;
+  --color-chart-4: #10b981;
+  --color-chart-5: #ef4444;
+  --color-chart-6: #8b5cf6;
+
+  /* Shadows (cool-toned) */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
+}
+
+/* DARK MODE */
+[data-theme="dark"] {
+  --color-bg:               #0f1117;
+  --color-surface:          #1a1d27;
+  --color-surface-2:        #1f2231;
+  --color-surface-offset:   #161923;
+  --color-surface-offset-2: #242838;
+  --color-surface-dynamic:  #2a2e3e;
+  --color-divider:          #2e3346;
+  --color-border:           #3b4055;
+  --color-text:             #e5e7eb;
+  --color-text-muted:       #9ca3af;
+  --color-text-faint:       #6b7280;
+  --color-text-inverse:     #111827;
+
+  --color-primary:          #22d3ee;
+  --color-primary-hover:    #06b6d4;
+  --color-primary-active:   #0891b2;
+  --color-primary-highlight: #1a2e38;
+
+  --color-success:          #34d399;
+  --color-success-hover:    #10b981;
+  --color-success-active:   #059669;
+  --color-success-highlight: #1a2e28;
+
+  --color-warning:          #fbbf24;
+  --color-warning-hover:    #f59e0b;
+  --color-warning-active:   #d97706;
+  --color-warning-highlight: #2e2818;
+
+  --color-error:            #f87171;
+  --color-error-hover:      #ef4444;
+  --color-error-active:     #dc2626;
+  --color-error-highlight:  #2e1a1a;
+
+  --color-chart-1: #22d3ee;
+  --color-chart-2: #818cf8;
+  --color-chart-3: #fbbf24;
+  --color-chart-4: #34d399;
+  --color-chart-5: #f87171;
+  --color-chart-6: #a78bfa;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-bg:               #0f1117;
+    --color-surface:          #1a1d27;
+    --color-surface-2:        #1f2231;
+    --color-surface-offset:   #161923;
+    --color-surface-offset-2: #242838;
+    --color-surface-dynamic:  #2a2e3e;
+    --color-divider:          #2e3346;
+    --color-border:           #3b4055;
+    --color-text:             #e5e7eb;
+    --color-text-muted:       #9ca3af;
+    --color-text-faint:       #6b7280;
+    --color-text-inverse:     #111827;
+    --color-primary:          #22d3ee;
+    --color-primary-hover:    #06b6d4;
+    --color-primary-active:   #0891b2;
+    --color-primary-highlight: #1a2e38;
+    --color-success:          #34d399;
+    --color-success-hover:    #10b981;
+    --color-success-active:   #059669;
+    --color-success-highlight: #1a2e28;
+    --color-warning:          #fbbf24;
+    --color-warning-hover:    #f59e0b;
+    --color-warning-active:   #d97706;
+    --color-warning-highlight: #2e2818;
+    --color-error:            #f87171;
+    --color-error-hover:      #ef4444;
+    --color-error-active:     #dc2626;
+    --color-error-highlight:  #2e1a1a;
+    --color-chart-1: #22d3ee;
+    --color-chart-2: #818cf8;
+    --color-chart-3: #fbbf24;
+    --color-chart-4: #34d399;
+    --color-chart-5: #f87171;
+    --color-chart-6: #a78bfa;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.5);
+  }
+}

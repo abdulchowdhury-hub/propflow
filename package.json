@@ -1,0 +1,20 @@
+{
+  "name": "propflow",
+  "version": "1.0.0",
+  "description": "Rental property management app - income, expenses, tenants",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "better-sqlite3": "^11.0.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4"
+  }
+}
