@@ -440,6 +440,7 @@ function renderTenants(container) {
     + '<th data-sort="monthly_rent" class="text-right">Rent <span class="sort-icon">&#8597;</span></th>'
     + '<th>Lease</th>'
     + '<th data-sort="status">Status <span class="sort-icon">&#8597;</span></th>'
+    + '<th>Actions</th>'
     + '</tr></thead><tbody id="tenants-tbody"></tbody></table></div></div>';
 
   fillTenantsTable();
@@ -474,6 +475,8 @@ function fillTenantsTable() {
       + '<td class="text-right amount">' + fmt(rent) + '</td>'
       + '<td>' + fmtDate(t.lease_start || t.leaseStart) + ' \u2013 ' + fmtDate(t.lease_end || t.leaseEnd) + '</td>'
       + '<td><span class="badge ' + badgeClass(t.status) + '">' + escapeHtml(t.status) + '</span></td>'
+      + '<td class="actions-cell"><button class="btn-icon" onclick="openEditTenantModal(' + t.id + ')" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+      + '<button class="btn-icon btn-icon-danger" onclick="deleteTenant(' + t.id + ', \'' + escapeHtml(t.name).replace(/'/g, "\\'") + '\')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td>'
       + '</tr>';
   });
 }
@@ -498,6 +501,7 @@ function renderIncome(container) {
     + '<th>Method</th>'
     + '<th data-sort="status">Status <span class="sort-icon">&#8597;</span></th>'
     + '<th>Notes</th>'
+    + '<th>Actions</th>'
     + '</tr></thead><tbody id="income-tbody"></tbody></table></div></div>';
 
   // Populate month filter dynamically
@@ -561,6 +565,8 @@ function fillIncomeTable() {
       + '<td>' + escapeHtml(i.method) + '</td>'
       + '<td><span class="badge ' + badgeClass(i.status) + '">' + escapeHtml(i.status) + '</span></td>'
       + '<td class="truncate">' + escapeHtml(i.notes) + '</td>'
+      + '<td class="actions-cell"><button class="btn-icon" onclick="openEditIncomeModal(' + i.id + ')" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+      + '<button class="btn-icon btn-icon-danger" onclick="deleteIncome(' + i.id + ')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td>'
       + '</tr>';
   });
 }
@@ -597,6 +603,7 @@ function renderExpenses(container) {
     + '<th data-sort="amount" class="text-right">Amount <span class="sort-icon">&#8597;</span></th>'
     + '<th data-sort="vendor">Vendor <span class="sort-icon">&#8597;</span></th>'
     + '<th>Notes</th>'
+    + '<th>Actions</th>'
     + '</tr></thead><tbody id="expenses-tbody"></tbody></table></div></div>';
 
   // Populate month filter
@@ -651,6 +658,8 @@ function fillExpensesTable() {
       + '<td class="text-right amount">' + fmt(e.amount) + '</td>'
       + '<td>' + escapeHtml(e.vendor) + '</td>'
       + '<td class="truncate">' + escapeHtml(e.notes) + '</td>'
+      + '<td class="actions-cell"><button class="btn-icon" onclick="openEditExpenseModal(' + e.id + ')" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+      + '<button class="btn-icon btn-icon-danger" onclick="deleteExpense(' + e.id + ')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td>'
       + '</tr>';
   });
 }
@@ -957,6 +966,143 @@ function openAddExpenseModal() {
     closeModal();
     renderPage(currentPage);
   });
+}
+
+// ===== EDIT TENANT MODAL =====
+function openEditTenantModal(tenantId) {
+  var t = DATA.tenants.find(function(x) { return x.id === tenantId; });
+  if (!t) return;
+  var pid = t.property_id || t.propertyId;
+  var rent = t.monthly_rent || t.monthlyRent || 0;
+  var leaseStart = t.lease_start || t.leaseStart || '';
+  var leaseEnd = t.lease_end || t.leaseEnd || '';
+  var html = '<form id="edit-tenant-form" class="form-grid">'
+    + '<div class="form-group full-width"><label>Full Name</label><input type="text" id="ft-name" value="' + escapeHtml(t.name) + '" required></div>'
+    + '<div class="form-group"><label>Email</label><input type="email" id="ft-email" value="' + escapeHtml(t.email) + '"></div>'
+    + '<div class="form-group"><label>Phone</label><input type="tel" id="ft-phone" value="' + escapeHtml(t.phone) + '"></div>'
+    + '<div class="form-group"><label>Property</label><select id="ft-property" required>' + DATA.properties.map(function(p) { return '<option value="' + p.id + '"' + (p.id === pid ? ' selected' : '') + '>' + escapeHtml(p.name) + '</option>'; }).join('') + '</select></div>'
+    + '<div class="form-group"><label>Unit</label><input type="text" id="ft-unit" value="' + escapeHtml(t.unit) + '" required></div>'
+    + '<div class="form-group"><label>Lease Start</label><input type="date" id="ft-lease-start" value="' + leaseStart + '" required></div>'
+    + '<div class="form-group"><label>Lease End</label><input type="date" id="ft-lease-end" value="' + leaseEnd + '" required></div>'
+    + '<div class="form-group"><label>Monthly Rent</label><input type="number" id="ft-rent" min="0" step="50" value="' + rent + '" required></div>'
+    + '<div class="form-group"><label>Status</label><select id="ft-status"><option value="active"' + (t.status === 'active' ? ' selected' : '') + '>Active</option><option value="inactive"' + (t.status === 'inactive' ? ' selected' : '') + '>Inactive</option></select></div>'
+    + '<div class="form-group full-width"><label>Notes</label><textarea id="ft-notes">' + escapeHtml(t.notes || '') + '</textarea></div>'
+    + '<div class="form-actions full-width"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save Changes</button></div>'
+    + '</form>';
+  openModal('Edit Tenant', html);
+  document.getElementById('edit-tenant-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    await api('/api/tenants/' + tenantId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        property_id: parseInt(document.getElementById('ft-property').value),
+        unit: document.getElementById('ft-unit').value,
+        name: document.getElementById('ft-name').value,
+        email: document.getElementById('ft-email').value,
+        phone: document.getElementById('ft-phone').value,
+        lease_start: document.getElementById('ft-lease-start').value,
+        lease_end: document.getElementById('ft-lease-end').value,
+        monthly_rent: parseFloat(document.getElementById('ft-rent').value) || 0,
+        status: document.getElementById('ft-status').value,
+        notes: document.getElementById('ft-notes').value
+      })
+    });
+    closeModal();
+    renderPage(currentPage);
+  });
+}
+
+async function deleteTenant(id, name) {
+  if (!confirm('Delete tenant "' + name + '"? This will also remove all their payment records.')) return;
+  await api('/api/tenants/' + id, { method: 'DELETE' });
+  renderPage(currentPage);
+}
+
+// ===== EDIT INCOME MODAL =====
+function openEditIncomeModal(incomeId) {
+  var rec = DATA.income.find(function(x) { return x.id === incomeId; });
+  if (!rec) return;
+  var tid = rec.tenant_id || rec.tenantId;
+  var html = '<form id="edit-income-form" class="form-grid">'
+    + '<div class="form-group full-width"><label>Tenant</label><select id="fi-tenant" required>' + tenantOptions().replace('value="' + tid + '"', 'value="' + tid + '" selected') + '</select></div>'
+    + '<div class="form-group"><label>Date</label><input type="date" id="fi-date" value="' + rec.date + '" required></div>'
+    + '<div class="form-group"><label>Amount</label><input type="number" id="fi-amount" min="0" step="50" value="' + rec.amount + '" required></div>'
+    + '<div class="form-group"><label>Method</label><select id="fi-method"><option value="bank transfer"' + (rec.method === 'bank transfer' ? ' selected' : '') + '>Bank Transfer</option><option value="check"' + (rec.method === 'check' ? ' selected' : '') + '>Check</option><option value="cash"' + (rec.method === 'cash' ? ' selected' : '') + '>Cash</option><option value="online"' + (rec.method === 'online' ? ' selected' : '') + '>Online</option></select></div>'
+    + '<div class="form-group"><label>Status</label><select id="fi-status"><option value="paid"' + (rec.status === 'paid' ? ' selected' : '') + '>Paid</option><option value="pending"' + (rec.status === 'pending' ? ' selected' : '') + '>Pending</option><option value="late"' + (rec.status === 'late' ? ' selected' : '') + '>Late</option></select></div>'
+    + '<div class="form-group full-width"><label>Notes</label><textarea id="fi-notes">' + escapeHtml(rec.notes || '') + '</textarea></div>'
+    + '<div class="form-actions full-width"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save Changes</button></div>'
+    + '</form>';
+  openModal('Edit Payment', html);
+  document.getElementById('edit-income-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var newTid = parseInt(document.getElementById('fi-tenant').value);
+    var tenant = DATA.tenants.find(function(t) { return t.id === newTid; });
+    await api('/api/income/' + incomeId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tenant_id: newTid,
+        property_id: tenant ? (tenant.property_id || tenant.propertyId) : 0,
+        date: document.getElementById('fi-date').value,
+        amount: parseFloat(document.getElementById('fi-amount').value) || 0,
+        method: document.getElementById('fi-method').value,
+        status: document.getElementById('fi-status').value,
+        notes: document.getElementById('fi-notes').value
+      })
+    });
+    closeModal();
+    renderPage(currentPage);
+  });
+}
+
+async function deleteIncome(id) {
+  if (!confirm('Delete this payment record?')) return;
+  await api('/api/income/' + id, { method: 'DELETE' });
+  renderPage(currentPage);
+}
+
+// ===== EDIT EXPENSE MODAL =====
+function openEditExpenseModal(expenseId) {
+  var rec = DATA.expenses.find(function(x) { return x.id === expenseId; });
+  if (!rec) return;
+  var pid = rec.property_id || rec.propertyId;
+  var categories = ['maintenance', 'repairs', 'insurance', 'taxes', 'utilities', 'mortgage', 'management fees', 'other'];
+  var html = '<form id="edit-expense-form" class="form-grid">'
+    + '<div class="form-group"><label>Property</label><select id="fe-property" required>' + DATA.properties.map(function(p) { return '<option value="' + p.id + '"' + (p.id === pid ? ' selected' : '') + '>' + escapeHtml(p.name) + '</option>'; }).join('') + '</select></div>'
+    + '<div class="form-group"><label>Date</label><input type="date" id="fe-date" value="' + rec.date + '" required></div>'
+    + '<div class="form-group"><label>Category</label><select id="fe-category">' + categories.map(function(c) { return '<option value="' + c + '"' + (c === rec.category ? ' selected' : '') + '>' + c.charAt(0).toUpperCase() + c.slice(1) + '</option>'; }).join('') + '</select></div>'
+    + '<div class="form-group"><label>Amount</label><input type="number" id="fe-amount" min="0" step="10" value="' + rec.amount + '" required></div>'
+    + '<div class="form-group full-width"><label>Description</label><input type="text" id="fe-description" value="' + escapeHtml(rec.description) + '" required></div>'
+    + '<div class="form-group"><label>Vendor</label><input type="text" id="fe-vendor" value="' + escapeHtml(rec.vendor || '') + '"></div>'
+    + '<div class="form-group full-width"><label>Notes</label><textarea id="fe-notes">' + escapeHtml(rec.notes || '') + '</textarea></div>'
+    + '<div class="form-actions full-width"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save Changes</button></div>'
+    + '</form>';
+  openModal('Edit Expense', html);
+  document.getElementById('edit-expense-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    await api('/api/expenses/' + expenseId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        property_id: parseInt(document.getElementById('fe-property').value),
+        date: document.getElementById('fe-date').value,
+        category: document.getElementById('fe-category').value,
+        description: document.getElementById('fe-description').value,
+        amount: parseFloat(document.getElementById('fe-amount').value) || 0,
+        vendor: document.getElementById('fe-vendor').value,
+        notes: document.getElementById('fe-notes').value
+      })
+    });
+    closeModal();
+    renderPage(currentPage);
+  });
+}
+
+async function deleteExpense(id) {
+  if (!confirm('Delete this expense record?')) return;
+  await api('/api/expenses/' + id, { method: 'DELETE' });
+  renderPage(currentPage);
 }
 
 // ===== INIT =====
