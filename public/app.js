@@ -428,6 +428,11 @@ function renderPropertyDetail(container, propId) {
     + kpiCard('Total Expenses', fmt(totalExpenses), 'All time')
     + kpiCard('Net', fmt(totalIncome - totalExpenses), totalIncome - totalExpenses >= 0 ? 'positive' : 'negative')
     + '</div>'
+    // Documents section
+    + '<div class="table-card" style="margin-bottom:var(--space-6)" id="prop-docs-card-' + prop.id + '">'
+    + '<div class="table-header"><h3>Documents</h3><div class="table-actions"><button class="btn btn-primary btn-sm" onclick="openPropertyDocUploadModal(' + prop.id + ')">+ Upload Document</button></div></div>'
+    + '<div id="prop-docs-' + prop.id + '"><div class="doc-list-loading" style="padding:var(--space-4) var(--space-5);color:var(--color-text-muted);font-size:var(--text-sm)">Loading documents...</div></div>'
+    + '</div>'
     // Tenants table with actions
     + '<div class="table-card" style="margin-bottom:var(--space-6)"><div class="table-header"><h3>Tenants (' + propTenants.length + ')</h3><div class="table-actions"><button class="btn btn-primary btn-sm" onclick="openAddTenantModal()">+ Add Tenant</button></div></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Unit</th><th>Rent</th><th>Lease</th><th>Status</th><th>Actions</th></tr></thead><tbody>'
     + propTenants.map(function(t) {
@@ -454,19 +459,24 @@ function renderPropertyDetail(container, propId) {
         + '<button class="btn-icon btn-icon-danger" onclick="deleteIncome(' + i.id + ')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td></tr>';
     }).join('') + '</tbody></table></div></div>'
     // Expenses table - full detail with actions
-    + '<div class="table-card" style="margin-bottom:var(--space-6)"><div class="table-header"><h3>Expenses (' + propExpenses.length + ' records)</h3><div class="table-actions"><button class="btn btn-primary btn-sm" onclick="openAddExpenseModal()">+ Add Expense</button></div></div>'
+    + '<div class="table-card" style="margin-bottom:var(--space-6)"><div class="table-header"><h3>Expenses (' + propExpenses.length + ' records)</h3><div class="table-actions"><button class="btn btn-primary btn-sm" onclick="openAddExpenseModal()">+ Add Expense</button><button class="btn btn-secondary btn-sm" onclick="openBulkExpenseModal()">+ Bulk Entry</button></div></div>'
     + '<div class="summary-bar" style="margin:var(--space-3) var(--space-5)">'
     + '<div class="summary-item"><span class="summary-label">Total Expenses</span><span class="summary-value">' + fmt(totalExpenses) + '</span></div>'
     + '<div class="summary-item"><span class="summary-label">Records</span><span class="summary-value">' + propExpenses.length + '</span></div>'
     + '</div>'
-    + '<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="text-right">Amount</th><th>Vendor</th><th>Notes</th><th>Actions</th></tr></thead><tbody>'
+    + '<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="text-right">Amount</th><th>Vendor</th><th>Notes</th><th>Receipt</th><th>Actions</th></tr></thead><tbody>'
     + propExpenses.map(function(e) {
-      return '<tr><td>' + fmtDate(e.date) + '</td><td><span class="badge badge-primary">' + escapeHtml(e.category) + '</span></td><td>' + escapeHtml(e.description) + '</td><td class="text-right amount">' + fmt(e.amount) + '</td><td>' + escapeHtml(e.vendor) + '</td><td class="truncate">' + escapeHtml(e.notes) + '</td>'
+      var rCell = e.receipt_path
+        ? '<td class="text-center"><a href="/' + escapeHtml(e.receipt_path) + '" target="_blank" title="View receipt" class="receipt-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></a></td>'
+        : '<td></td>';
+      return '<tr><td>' + fmtDate(e.date) + '</td><td><span class="badge badge-primary">' + escapeHtml(e.category) + '</span></td><td>' + escapeHtml(e.description) + '</td><td class="text-right amount">' + fmt(e.amount) + '</td><td>' + escapeHtml(e.vendor) + '</td><td class="truncate">' + escapeHtml(e.notes) + '</td>' + rCell
         + '<td class="actions-cell"><button class="btn-icon" onclick="openEditExpenseModal(' + e.id + ')" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
         + '<button class="btn-icon btn-icon-danger" onclick="deleteExpense(' + e.id + ')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td></tr>';
     }).join('') + '</tbody></table></div></div>';
 
   document.getElementById('page-title').textContent = prop.name;
+  // Async: load property documents
+  loadAndRenderPropertyDocs(propId);
 }
 
 // ===== TENANTS PAGE =====
@@ -486,6 +496,7 @@ function renderTenants(container) {
     + '<th data-sort="status">Status <span class="sort-icon">&#8597;</span></th>'
     + '<th>Actions</th>'
     + '</tr></thead><tbody id="tenants-tbody"></tbody></table></div></div>';
+  // no change to structure needed, actions cell updated in fillTenantsTable
 
   fillTenantsTable();
   attachSorting('tenants-table', DATA.tenants, fillTenantsTable);
@@ -519,8 +530,11 @@ function fillTenantsTable() {
       + '<td class="text-right amount">' + fmt(rent) + '</td>'
       + '<td>' + fmtDate(t.lease_start || t.leaseStart) + ' \u2013 ' + fmtDate(t.lease_end || t.leaseEnd) + '</td>'
       + '<td><span class="badge ' + badgeClass(t.status) + '">' + escapeHtml(t.status) + '</span></td>'
-      + '<td class="actions-cell"><button class="btn-icon" onclick="openEditTenantModal(' + t.id + ')" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
-      + '<button class="btn-icon btn-icon-danger" onclick="deleteTenant(' + t.id + ', \'' + escapeHtml(t.name).replace(/'/g, "\\'") + '\')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td>'
+      + '<td class="actions-cell">'
+      + '<button class="btn-icon" onclick="openTenantDocsModal(' + t.id + ', \'' + escapeHtml(t.name).replace(/'/g, "\\'") + '\')" title="Documents"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></button>'
+      + '<button class="btn-icon" onclick="openEditTenantModal(' + t.id + ')" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+      + '<button class="btn-icon btn-icon-danger" onclick="deleteTenant(' + t.id + ', \'' + escapeHtml(t.name).replace(/'/g, "\\'") + '\')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>'
+      + '</td>'
       + '</tr>';
   });
 }
@@ -528,6 +542,7 @@ function fillTenantsTable() {
 // ===== INCOME PAGE =====
 function renderIncome(container) {
   container.innerHTML = ''
+    + renderQuickCollectPanel()
     + '<div class="filter-bar">'
     + '<select id="income-filter-property"><option value="">All Properties</option>' + DATA.properties.map(function(p) { return '<option value="' + p.id + '">' + escapeHtml(p.name) + '</option>'; }).join('') + '</select>'
     + '<select id="income-filter-month"><option value="">All Months</option></select>'
@@ -563,6 +578,151 @@ function renderIncome(container) {
   document.getElementById('income-filter-property').addEventListener('change', fillIncomeTable);
   document.getElementById('income-filter-month').addEventListener('change', fillIncomeTable);
   document.getElementById('income-filter-status').addEventListener('change', fillIncomeTable);
+
+  // Wire up Quick Collect panel
+  initQuickCollect();
+}
+
+// ===== QUICK COLLECT HELPERS =====
+function renderQuickCollectPanel() {
+  var today = new Date().toISOString().slice(0, 10);
+  var activeTenants = DATA.tenants.filter(function(t) { return t.status === 'active'; });
+
+  if (activeTenants.length === 0) {
+    return '<div class="quick-collect"><div class="quick-collect-header" onclick="toggleQuickCollect(this)"><span>&#9650; Quick Collect</span><span class="qc-toggle-icon">&#9650;</span></div></div>';
+  }
+
+  // Group tenants by property
+  var groups = {};
+  activeTenants.forEach(function(t) {
+    var pid = t.property_id || t.propertyId;
+    if (!groups[pid]) groups[pid] = [];
+    groups[pid].push(t);
+  });
+
+  var currentMonth = today.slice(0, 7);
+
+  // Build set of tenant IDs already paid this month
+  var paidThisMonth = {};
+  DATA.income.forEach(function(i) {
+    if (i.date && i.date.startsWith(currentMonth) && i.status === 'paid') {
+      var tid = i.tenant_id || i.tenantId;
+      paidThisMonth[tid] = true;
+    }
+  });
+
+  var tenantRows = '';
+  var propIds = Object.keys(groups);
+  propIds.forEach(function(pid) {
+    var propName = getPropertyName(parseInt(pid));
+    tenantRows += '<div class="qc-property-group"><div class="qc-property-label">' + escapeHtml(propName) + '</div>';
+    groups[pid].forEach(function(t) {
+      var rent = t.monthly_rent || t.monthlyRent || 0;
+      var alreadyPaid = paidThisMonth[t.id] ? true : false;
+      var rowClass = alreadyPaid ? 'qc-tenant-row collected' : 'qc-tenant-row';
+      var btnOrCheck = alreadyPaid
+        ? '<span class="qc-check">&#10003; Collected</span>'
+        : '<button class="btn btn-primary btn-sm qc-collect-btn" data-tid="' + t.id + '" data-rent="' + rent + '">Collect</button>';
+      tenantRows += '<div class="' + rowClass + '" id="qc-row-' + t.id + '">'
+        + '<span class="qc-tenant-name">' + escapeHtml(t.name) + '</span>'
+        + '<span class="qc-unit">Unit ' + escapeHtml(t.unit) + '</span>'
+        + '<span class="qc-rent">' + fmt(rent) + '</span>'
+        + btnOrCheck
+        + '</div>';
+    });
+    tenantRows += '</div>';
+  });
+
+  return '<div class="quick-collect" id="quick-collect-panel">'
+    + '<div class="quick-collect-header" onclick="toggleQuickCollect(this)">'
+    + '<span>&#9889; Quick Collect</span>'
+    + '<span class="qc-toggle-icon">&#9650;</span>'
+    + '</div>'
+    + '<div class="quick-collect-body" id="quick-collect-body">'
+    + '<div class="qc-settings">'
+    + '<div class="qc-settings-field"><label>Collection Date</label><input type="date" id="qc-date" value="' + today + '"></div>'
+    + '<div class="qc-settings-field"><label>Payment Method</label><select id="qc-method"><option value="bank transfer">Bank Transfer</option><option value="check">Check</option><option value="cash">Cash</option><option value="online">Online</option></select></div>'
+    + '</div>'
+    + '<div class="qc-tenant-list">' + tenantRows + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function toggleQuickCollect(header) {
+  var body = document.getElementById('quick-collect-body');
+  var icon = header.querySelector('.qc-toggle-icon');
+  if (!body) return;
+  if (body.style.display === 'none') {
+    body.style.display = '';
+    if (icon) icon.innerHTML = '&#9650;';
+  } else {
+    body.style.display = 'none';
+    if (icon) icon.innerHTML = '&#9660;';
+  }
+}
+
+function initQuickCollect() {
+  var panel = document.getElementById('quick-collect-panel');
+  if (!panel) return;
+  panel.addEventListener('click', function(e) {
+    var btn = e.target;
+    if (!btn.classList.contains('qc-collect-btn')) return;
+    e.stopPropagation();
+    quickCollectTenant(btn);
+  });
+}
+
+async function quickCollectTenant(btn) {
+  var tid = parseInt(btn.getAttribute('data-tid'));
+  var rent = parseFloat(btn.getAttribute('data-rent')) || 0;
+  var dateEl = document.getElementById('qc-date');
+  var methodEl = document.getElementById('qc-method');
+  var date = dateEl ? dateEl.value : new Date().toISOString().slice(0, 10);
+  var method = methodEl ? methodEl.value : 'bank transfer';
+
+  var tenant = DATA.tenants.find(function(t) { return t.id === tid; });
+  if (!tenant) return;
+  var pid = tenant.property_id || tenant.propertyId;
+
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    await api('/api/income', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tenant_id: tid,
+        property_id: pid,
+        date: date,
+        amount: rent,
+        method: method,
+        status: 'paid',
+        notes: ''
+      })
+    });
+
+    // Mark row as collected
+    var row = document.getElementById('qc-row-' + tid);
+    if (row) {
+      row.className = 'qc-tenant-row collected';
+      var btnEl = row.querySelector('.qc-collect-btn');
+      if (btnEl) {
+        var check = document.createElement('span');
+        check.className = 'qc-check';
+        check.innerHTML = '&#10003; Collected';
+        btnEl.parentNode.replaceChild(check, btnEl);
+      }
+    }
+
+    // Refresh data and income table (but not full page re-render to keep QC state)
+    await loadAllData();
+    fillIncomeTable();
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Collect';
+    alert('Failed to record payment: ' + (err.message || 'Unknown error'));
+  }
 }
 
 function fillIncomeTable() {
@@ -629,6 +789,10 @@ function exportIncomeCSV() {
 // ===== EXPENSES PAGE =====
 function renderExpenses(container) {
   var categories = ['maintenance', 'repairs', 'insurance', 'taxes', 'utilities', 'mortgage', 'management fees', 'other'];
+  var today = new Date().toISOString().slice(0, 10);
+
+  var catOptions = categories.map(function(c) { return '<option value="' + c + '">' + c.charAt(0).toUpperCase() + c.slice(1) + '</option>'; }).join('');
+  var propOptions = '<option value="">Property...</option>' + DATA.properties.map(function(p) { return '<option value="' + p.id + '">' + escapeHtml(p.name) + '</option>'; }).join('');
 
   container.innerHTML = ''
     + '<div class="filter-bar">'
@@ -636,9 +800,18 @@ function renderExpenses(container) {
     + '<select id="expense-filter-category"><option value="">All Categories</option>' + categories.map(function(c) { return '<option value="' + c + '">' + c.charAt(0).toUpperCase() + c.slice(1) + '</option>'; }).join('') + '</select>'
     + '<select id="expense-filter-month"><option value="">All Months</option></select>'
     + '</div>'
+    + '<div class="inline-add-bar" id="inline-expense-bar">'
+    + '<select id="iab-property">' + propOptions + '</select>'
+    + '<input type="date" id="iab-date" value="' + today + '">'
+    + '<select id="iab-category">' + catOptions + '</select>'
+    + '<input type="text" id="iab-description" placeholder="Description" class="iab-grow">'
+    + '<input type="number" id="iab-amount" placeholder="Amount" min="0" step="10" class="iab-amount">'
+    + '<input type="text" id="iab-vendor" placeholder="Vendor" class="iab-vendor">'
+    + '<button class="btn btn-primary btn-sm" id="iab-add-btn">Add</button>'
+    + '</div>'
     + '<div id="expense-summary"></div>'
     + '<div class="table-card">'
-    + '<div class="table-header"><h3>All Expenses</h3><div class="table-actions"><button class="btn btn-primary btn-sm" onclick="openAddExpenseModal()">+ Add Expense</button><button class="btn btn-secondary btn-sm" onclick="exportExpenseCSV()">Export CSV</button></div></div>'
+    + '<div class="table-header"><h3>All Expenses</h3><div class="table-actions"><button class="btn btn-primary btn-sm" onclick="openAddExpenseModal()">+ Add Expense</button><button class="btn btn-secondary btn-sm" onclick="openBulkExpenseModal()">+ Bulk Entry</button><button class="btn btn-secondary btn-sm" onclick="exportExpenseCSV()">Export CSV</button></div></div>'
     + '<div class="table-wrapper"><table id="expenses-table"><thead><tr>'
     + '<th data-sort="date">Date <span class="sort-icon">&#8597;</span></th>'
     + '<th data-sort="property_id">Property <span class="sort-icon">&#8597;</span></th>'
@@ -647,6 +820,7 @@ function renderExpenses(container) {
     + '<th data-sort="amount" class="text-right">Amount <span class="sort-icon">&#8597;</span></th>'
     + '<th data-sort="vendor">Vendor <span class="sort-icon">&#8597;</span></th>'
     + '<th>Notes</th>'
+    + '<th>Receipt</th>'
     + '<th>Actions</th>'
     + '</tr></thead><tbody id="expenses-tbody"></tbody></table></div></div>';
 
@@ -665,6 +839,70 @@ function renderExpenses(container) {
   document.getElementById('expense-filter-property').addEventListener('change', fillExpensesTable);
   document.getElementById('expense-filter-category').addEventListener('change', fillExpensesTable);
   document.getElementById('expense-filter-month').addEventListener('change', fillExpensesTable);
+
+  // Wire up inline add bar
+  document.getElementById('iab-add-btn').addEventListener('click', submitInlineExpense);
+  document.getElementById('iab-vendor').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitInlineExpense();
+  });
+  document.getElementById('iab-amount').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitInlineExpense();
+  });
+}
+
+async function submitInlineExpense() {
+  var propId = parseInt(document.getElementById('iab-property').value);
+  var date = document.getElementById('iab-date').value;
+  var category = document.getElementById('iab-category').value;
+  var description = document.getElementById('iab-description').value.trim();
+  var amount = parseFloat(document.getElementById('iab-amount').value) || 0;
+  var vendor = document.getElementById('iab-vendor').value.trim();
+
+  if (!propId) { document.getElementById('iab-property').focus(); return; }
+  if (!description) { document.getElementById('iab-description').focus(); return; }
+  if (!amount || amount <= 0) { document.getElementById('iab-amount').focus(); return; }
+
+  var btn = document.getElementById('iab-add-btn');
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  try {
+    await api('/api/expenses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        property_id: propId,
+        date: date,
+        category: category,
+        description: description,
+        amount: amount,
+        vendor: vendor,
+        notes: ''
+      })
+    });
+
+    // Clear inputs
+    document.getElementById('iab-description').value = '';
+    document.getElementById('iab-amount').value = '';
+    document.getElementById('iab-vendor').value = '';
+    document.getElementById('iab-description').focus();
+
+    // Refresh data and table
+    await loadAllData();
+    fillExpensesTable();
+
+    btn.textContent = 'Added!';
+    btn.style.background = 'var(--color-success)';
+    setTimeout(function() {
+      btn.textContent = 'Add';
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 1200);
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Add';
+    alert('Failed to add expense: ' + (err.message || 'Unknown error'));
+  }
 }
 
 function fillExpensesTable() {
@@ -694,6 +932,9 @@ function fillExpensesTable() {
   tbody.innerHTML = '';
   filtered.forEach(function(e) {
     var pid = e.property_id || e.propertyId;
+    var receiptCell = e.receipt_path
+      ? '<td class="text-center"><a href="/' + escapeHtml(e.receipt_path) + '" target="_blank" title="View receipt" class="receipt-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></a></td>'
+      : '<td></td>';
     tbody.innerHTML += '<tr>'
       + '<td>' + fmtDate(e.date) + '</td>'
       + '<td>' + escapeHtml(getPropertyName(pid)) + '</td>'
@@ -702,6 +943,7 @@ function fillExpensesTable() {
       + '<td class="text-right amount">' + fmt(e.amount) + '</td>'
       + '<td>' + escapeHtml(e.vendor) + '</td>'
       + '<td class="truncate">' + escapeHtml(e.notes) + '</td>'
+      + receiptCell
       + '<td class="actions-cell"><button class="btn-icon" onclick="openEditExpenseModal(' + e.id + ')" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
       + '<button class="btn-icon btn-icon-danger" onclick="deleteExpense(' + e.id + ')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td>'
       + '</tr>';
@@ -946,9 +1188,9 @@ function openAddPaymentModal() {
   var html = '<form id="add-payment-form" class="form-grid">'
     + '<div class="form-group full-width"><label>Tenant</label><select id="fi-tenant" required>' + tenantOptions() + '</select></div>'
     + '<div class="form-group"><label>Date</label><input type="date" id="fi-date" value="' + new Date().toISOString().slice(0, 10) + '" required></div>'
-    + '<div class="form-group"><label>Amount</label><input type="number" id="fi-amount" min="0" step="50" required></div>'
-    + '<div class="form-group"><label>Method</label><select id="fi-method"><option value="bank transfer">Bank Transfer</option><option value="check">Check</option><option value="cash">Cash</option><option value="online">Online</option></select></div>'
-    + '<div class="form-group"><label>Status</label><select id="fi-status"><option value="paid">Paid</option><option value="pending">Pending</option><option value="late">Late</option></select></div>'
+    + '<div class="form-group"><label>Amount</label><input type="number" id="fi-amount" min="0" step="50" required><span class="rent-hint" id="fi-rent-hint"></span></div>'
+    + '<div class="form-group"><label>Method</label><select id="fi-method"><option value="bank transfer" selected>Bank Transfer</option><option value="check">Check</option><option value="cash">Cash</option><option value="online">Online</option></select></div>'
+    + '<div class="form-group"><label>Status</label><select id="fi-status"><option value="paid" selected>Paid</option><option value="pending">Pending</option><option value="late">Late</option></select></div>'
     + '<div class="form-group full-width"><label>Notes</label><textarea id="fi-notes"></textarea></div>'
     + '<div class="form-actions full-width"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Record Payment</button></div>'
     + '</form>';
@@ -956,9 +1198,16 @@ function openAddPaymentModal() {
 
   var tenantSelect = document.getElementById('fi-tenant');
   var amountInput = document.getElementById('fi-amount');
+  var rentHint = document.getElementById('fi-rent-hint');
   function fillAmount() {
     var t = DATA.tenants.find(function(x) { return x.id === parseInt(tenantSelect.value); });
-    if (t) amountInput.value = t.monthly_rent || t.monthlyRent || 0;
+    if (t) {
+      var rent = t.monthly_rent || t.monthlyRent || 0;
+      amountInput.value = rent;
+      if (rentHint) rentHint.textContent = rent > 0 ? 'Monthly rent: ' + fmt(rent) : '';
+    } else {
+      if (rentHint) rentHint.textContent = '';
+    }
   }
   tenantSelect.addEventListener('change', fillAmount);
   fillAmount();
@@ -1118,6 +1367,23 @@ function openEditExpenseModal(expenseId) {
   if (!rec) return;
   var pid = rec.property_id || rec.propertyId;
   var categories = ['maintenance', 'repairs', 'insurance', 'taxes', 'utilities', 'mortgage', 'management fees', 'other'];
+
+  var receiptSection;
+  if (rec.receipt_path) {
+    var fname = rec.receipt_path.split('/').pop();
+    receiptSection = '<div class="form-group full-width"><label>Receipt</label>'
+      + '<div class="receipt-existing">'
+      + '<a href="/' + escapeHtml(rec.receipt_path) + '" target="_blank" class="btn btn-ghost btn-sm">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg> View Receipt'
+      + '</a>'
+      + '<button type="button" class="btn btn-secondary btn-sm" id="remove-receipt-btn">Remove</button>'
+      + '</div></div>';
+  } else {
+    receiptSection = '<div class="form-group full-width"><label>Receipt (optional)</label>'
+      + '<input type="file" id="fe-receipt" accept=".jpg,.jpeg,.png,.gif,.pdf,.webp">'
+      + '</div>';
+  }
+
   var html = '<form id="edit-expense-form" class="form-grid">'
     + '<div class="form-group"><label>Property</label><select id="fe-property" required>' + DATA.properties.map(function(p) { return '<option value="' + p.id + '"' + (p.id === pid ? ' selected' : '') + '>' + escapeHtml(p.name) + '</option>'; }).join('') + '</select></div>'
     + '<div class="form-group"><label>Date</label><input type="date" id="fe-date" value="' + rec.date + '" required></div>'
@@ -1126,9 +1392,22 @@ function openEditExpenseModal(expenseId) {
     + '<div class="form-group full-width"><label>Description</label><input type="text" id="fe-description" value="' + escapeHtml(rec.description) + '" required></div>'
     + '<div class="form-group"><label>Vendor</label><input type="text" id="fe-vendor" value="' + escapeHtml(rec.vendor || '') + '"></div>'
     + '<div class="form-group full-width"><label>Notes</label><textarea id="fe-notes">' + escapeHtml(rec.notes || '') + '</textarea></div>'
+    + receiptSection
     + '<div class="form-actions full-width"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save Changes</button></div>'
     + '</form>';
   openModal('Edit Expense', html);
+
+  // Remove receipt handler
+  var removeBtn = document.getElementById('remove-receipt-btn');
+  if (removeBtn) {
+    removeBtn.addEventListener('click', async function() {
+      if (!confirm('Remove this receipt?')) return;
+      await api('/api/expenses/' + expenseId + '/receipt', { method: 'DELETE' });
+      closeModal();
+      renderPage(currentPage);
+    });
+  }
+
   document.getElementById('edit-expense-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     await api('/api/expenses/' + expenseId, {
@@ -1144,6 +1423,13 @@ function openEditExpenseModal(expenseId) {
         notes: document.getElementById('fe-notes').value
       })
     });
+    // Upload receipt if file selected
+    var receiptInput = document.getElementById('fe-receipt');
+    if (receiptInput && receiptInput.files && receiptInput.files[0]) {
+      var fd = new FormData();
+      fd.append('receipt', receiptInput.files[0]);
+      await fetch('/api/expenses/' + expenseId + '/receipt', { method: 'POST', body: fd });
+    }
     closeModal();
     renderPage(currentPage);
   });
@@ -1153,6 +1439,270 @@ async function deleteExpense(id) {
   if (!confirm('Delete this expense record?')) return;
   await api('/api/expenses/' + id, { method: 'DELETE' });
   renderPage(currentPage);
+}
+
+// ===== DOCUMENT HELPERS =====
+async function loadDocuments(entityType, entityId) {
+  try {
+    var docs = await api('/api/documents?entity_type=' + encodeURIComponent(entityType) + '&entity_id=' + encodeURIComponent(entityId));
+    return docs || [];
+  } catch(e) {
+    return [];
+  }
+}
+
+async function deleteDocument(docId) {
+  return api('/api/documents/' + docId, { method: 'DELETE' });
+}
+
+function fmtFileSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function renderDocTable(docs, onDelete) {
+  if (!docs || docs.length === 0) {
+    return '<div class="doc-empty" style="padding:var(--space-4) var(--space-5);color:var(--color-text-muted);font-size:var(--text-sm)">No documents uploaded yet.</div>';
+  }
+  var rows = docs.map(function(d) {
+    return '<tr>'
+      + '<td>' + escapeHtml(d.name) + '</td>'
+      + '<td><span class="badge badge-primary">' + escapeHtml(d.file_type || 'file') + '</span></td>'
+      + '<td>' + fmtFileSize(d.file_size) + '</td>'
+      + '<td>' + fmtDate(d.created_at ? d.created_at.slice(0, 10) : '') + '</td>'
+      + '<td class="actions-cell">'
+      + '<a href="/api/documents/' + d.id + '/download" class="btn-icon" title="Download"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>'
+      + '<button class="btn-icon btn-icon-danger" onclick="' + onDelete + '(' + d.id + ')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>'
+      + '</td>'
+      + '</tr>';
+  }).join('');
+  return '<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Uploaded</th><th>Actions</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+// ===== PROPERTY DOCUMENTS =====
+async function loadAndRenderPropertyDocs(propId) {
+  var container = document.getElementById('prop-docs-' + propId);
+  if (!container) return;
+  var docs = await loadDocuments('property', propId);
+  container.innerHTML = renderDocTable(docs, 'deletePropertyDoc');
+  // Store propId on container for refresh
+  container.setAttribute('data-propid', propId);
+}
+
+async function deletePropertyDoc(docId) {
+  if (!confirm('Delete this document?')) return;
+  await deleteDocument(docId);
+  // Find any prop-docs container and reload
+  var containers = document.querySelectorAll('[id^="prop-docs-"]');
+  for (var i = 0; i < containers.length; i++) {
+    var pid = containers[i].getAttribute('data-propid');
+    if (pid) await loadAndRenderPropertyDocs(parseInt(pid));
+  }
+}
+
+function openPropertyDocUploadModal(propId) {
+  var html = '<form id="prop-doc-upload-form" class="form-grid">'
+    + '<div class="form-group full-width"><label>Document Name</label><input type="text" id="pd-name" required placeholder="e.g. Property Insurance 2026"></div>'
+    + '<div class="form-group full-width"><label>Category</label>'
+    + '<select id="pd-category">'
+    + '<option value="lease">Lease</option>'
+    + '<option value="insurance">Insurance</option>'
+    + '<option value="tax document">Tax Document</option>'
+    + '<option value="inspection">Inspection</option>'
+    + '<option value="notice">Notice</option>'
+    + '<option value="other" selected>Other</option>'
+    + '</select></div>'
+    + '<div class="form-group full-width"><label>File</label><input type="file" id="pd-file" required></div>'
+    + '<div class="form-actions full-width"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Upload</button></div>'
+    + '</form>';
+  openModal('Upload Property Document', html);
+  document.getElementById('prop-doc-upload-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var nameVal = document.getElementById('pd-name').value;
+    var catVal = document.getElementById('pd-category').value;
+    var fileInput = document.getElementById('pd-file');
+    if (!fileInput.files || !fileInput.files[0]) return;
+    var fd = new FormData();
+    fd.append('entity_type', 'property');
+    fd.append('entity_id', propId);
+    fd.append('name', nameVal + ' (' + catVal + ')');
+    fd.append('file', fileInput.files[0]);
+    try {
+      await fetch('/api/documents', { method: 'POST', body: fd });
+      closeModal();
+      await loadAndRenderPropertyDocs(propId);
+    } catch(err) {
+      alert('Upload failed: ' + err.message);
+    }
+  });
+}
+
+// ===== TENANT DOCUMENTS =====
+async function openTenantDocsModal(tenantId, tenantName) {
+  openModal('Documents — ' + tenantName, '<div id="tenant-docs-modal-body"><p style="padding:var(--space-3);color:var(--color-text-muted)">Loading...</p></div>');
+  var docs = await loadDocuments('tenant', tenantId);
+  var modalBody = document.getElementById('tenant-docs-modal-body');
+  if (!modalBody) return;
+
+  var uploadForm = '<div class="doc-upload" style="margin-top:var(--space-5);padding-top:var(--space-4);border-top:1px solid var(--color-divider)">'
+    + '<h4 style="font-size:var(--text-sm);font-weight:600;margin-bottom:var(--space-3)">Upload New Document</h4>'
+    + '<form id="tenant-doc-form" class="form-grid">'
+    + '<div class="form-group full-width"><label>Document Name</label><input type="text" id="td-name" required placeholder="e.g. Lease Agreement 2026"></div>'
+    + '<div class="form-group full-width"><label>Type</label>'
+    + '<select id="td-category">'
+    + '<option value="lease agreement">Lease Agreement</option>'
+    + '<option value="ID copy">ID Copy</option>'
+    + '<option value="background check">Background Check</option>'
+    + '<option value="notice">Notice</option>'
+    + '<option value="other" selected>Other</option>'
+    + '</select></div>'
+    + '<div class="form-group full-width"><label>File</label><input type="file" id="td-file" required></div>'
+    + '<div class="form-actions full-width" style="margin-top:var(--space-3);padding-top:0;border-top:none">'
+    + '<button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>'
+    + '<button type="submit" class="btn btn-primary">Upload</button>'
+    + '</div></form></div>';
+
+  modalBody.innerHTML = renderDocTable(docs, 'deleteTenantDoc') + uploadForm;
+  // Store tenantId for delete refresh
+  modalBody.setAttribute('data-tenantid', tenantId);
+  modalBody.setAttribute('data-tenantname', escapeHtml(tenantName));
+
+  document.getElementById('tenant-doc-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var nameVal = document.getElementById('td-name').value;
+    var catVal = document.getElementById('td-category').value;
+    var fileInput = document.getElementById('td-file');
+    if (!fileInput.files || !fileInput.files[0]) return;
+    var fd = new FormData();
+    fd.append('entity_type', 'tenant');
+    fd.append('entity_id', tenantId);
+    fd.append('name', nameVal + ' (' + catVal + ')');
+    fd.append('file', fileInput.files[0]);
+    try {
+      await fetch('/api/documents', { method: 'POST', body: fd });
+      // Refresh modal content
+      var newDocs = await loadDocuments('tenant', tenantId);
+      var mb = document.getElementById('tenant-docs-modal-body');
+      if (mb) {
+        mb.innerHTML = renderDocTable(newDocs, 'deleteTenantDoc') + uploadForm;
+        mb.setAttribute('data-tenantid', tenantId);
+      }
+    } catch(err) {
+      alert('Upload failed: ' + err.message);
+    }
+  });
+}
+
+async function deleteTenantDoc(docId) {
+  if (!confirm('Delete this document?')) return;
+  await deleteDocument(docId);
+  var mb = document.getElementById('tenant-docs-modal-body');
+  if (!mb) return;
+  var tid = parseInt(mb.getAttribute('data-tenantid'));
+  var tname = mb.getAttribute('data-tenantname') || '';
+  if (tid) await openTenantDocsModal(tid, tname);
+}
+
+// ===== BULK EXPENSE MODAL =====
+function openBulkExpenseModal() {
+  var categories = ['maintenance', 'repairs', 'insurance', 'taxes', 'utilities', 'mortgage', 'management fees', 'other'];
+  var catOptions = categories.map(function(c) { return '<option value="' + c + '">' + c.charAt(0).toUpperCase() + c.slice(1) + '</option>'; }).join('');
+
+  function makeRow(idx) {
+    return '<tr class="bulk-row" data-idx="' + idx + '">'
+      + '<td><input type="date" class="be-date" value="' + new Date().toISOString().slice(0, 10) + '"></td>'
+      + '<td><select class="be-category">' + catOptions + '</select></td>'
+      + '<td><input type="text" class="be-description" placeholder="Description"></td>'
+      + '<td><input type="number" class="be-amount" min="0" step="10" placeholder="0.00"></td>'
+      + '<td><input type="text" class="be-vendor" placeholder="Vendor"></td>'
+      + '<td><input type="text" class="be-notes" placeholder="Notes"></td>'
+      + '<td><button type="button" class="btn-icon btn-icon-danger" onclick="this.closest(\'tr\').remove()" title="Remove row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></td>'
+      + '</tr>';
+  }
+
+  var initialRows = '';
+  for (var i = 0; i < 5; i++) initialRows += makeRow(i);
+
+  var html = '<div>'
+    + '<div class="form-group" style="margin-bottom:var(--space-4)">'
+    + '<label style="font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em">Property (applies to all rows)</label>'
+    + '<select id="be-property" style="margin-top:var(--space-1);padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:var(--text-sm);background:var(--color-bg);color:var(--color-text);min-width:260px">' + propertyOptions() + '</select>'
+    + '</div>'
+    + '<div class="bulk-grid">'
+    + '<table id="bulk-table">'
+    + '<thead><tr>'
+    + '<th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Vendor</th><th>Notes</th><th></th>'
+    + '</tr></thead>'
+    + '<tbody id="bulk-tbody">' + initialRows + '</tbody>'
+    + '</table></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--space-4)">'
+    + '<button type="button" class="btn btn-ghost btn-sm" id="bulk-add-row">+ Add Row</button>'
+    + '<div style="display:flex;gap:var(--space-3)">'
+    + '<button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>'
+    + '<button type="button" class="btn btn-primary" id="bulk-save-btn">Save All</button>'
+    + '</div></div></div>';
+
+  // Set modal to wide mode
+  var modal = document.getElementById('modal');
+  modal.classList.add('modal-wide');
+  openModal('Bulk Expense Entry', html);
+
+  // Add row
+  var rowCount = 5;
+  document.getElementById('bulk-add-row').addEventListener('click', function() {
+    var tbody = document.getElementById('bulk-tbody');
+    var tmp = document.createElement('tbody');
+    tmp.innerHTML = makeRow(rowCount++);
+    var newRow = tmp.firstChild;
+    if (newRow) tbody.appendChild(newRow);
+  });
+
+  // Remove wide class when modal closes
+  document.getElementById('modal-close').addEventListener('click', function() {
+    modal.classList.remove('modal-wide');
+  }, { once: true });
+  document.getElementById('modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) modal.classList.remove('modal-wide');
+  }, { once: true });
+
+  // Save all
+  document.getElementById('bulk-save-btn').addEventListener('click', async function() {
+    var propId = parseInt(document.getElementById('be-property').value);
+    if (!propId) { alert('Please select a property.'); return; }
+    var rows = document.querySelectorAll('#bulk-tbody .bulk-row');
+    var expenses = [];
+    rows.forEach(function(row) {
+      var date = row.querySelector('.be-date').value;
+      var category = row.querySelector('.be-category').value;
+      var description = row.querySelector('.be-description').value.trim();
+      var amount = parseFloat(row.querySelector('.be-amount').value);
+      var vendor = row.querySelector('.be-vendor').value.trim();
+      var notes = row.querySelector('.be-notes').value.trim();
+      if (description && amount > 0) {
+        expenses.push({ property_id: propId, date: date, category: category, description: description, amount: amount, vendor: vendor, notes: notes });
+      }
+    });
+    if (expenses.length === 0) { alert('No valid rows to save. Each row needs a description and amount.'); return; }
+    try {
+      var btn = document.getElementById('bulk-save-btn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      var result = await api('/api/expenses/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expenses: expenses })
+      });
+      modal.classList.remove('modal-wide');
+      closeModal();
+      renderPage(currentPage);
+    } catch(err) {
+      alert('Save failed: ' + err.message);
+      var btn2 = document.getElementById('bulk-save-btn');
+      if (btn2) { btn2.disabled = false; btn2.textContent = 'Save All'; }
+    }
+  });
 }
 
 // ===== INIT =====
