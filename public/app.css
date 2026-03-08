@@ -421,7 +421,46 @@ tr:hover td {
 }
 
 .btn-icon {
-  padding: var(--space-2);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-interactive);
+}
+
+.btn-icon:hover {
+  background: var(--color-surface-offset);
+  color: var(--color-primary);
+}
+
+.btn-icon-danger {
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-interactive);
+}
+
+.btn-icon-danger:hover {
+  background: var(--color-error-highlight);
+  color: var(--color-error);
+}
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
 }
 
 /* ===== BADGES ===== */
