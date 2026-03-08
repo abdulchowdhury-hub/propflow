@@ -38,7 +38,12 @@ router.put('/properties/:id', (req, res) => {
 });
 
 router.delete('/properties/:id', (req, res) => {
-  db.prepare('DELETE FROM properties WHERE id = ?').run(req.params.id);
+  const id = req.params.id;
+  // Cascade delete: remove income for tenants of this property, then tenants, then expenses, then property
+  db.prepare('DELETE FROM income WHERE property_id = ?').run(id);
+  db.prepare('DELETE FROM expenses WHERE property_id = ?').run(id);
+  db.prepare('DELETE FROM tenants WHERE property_id = ?').run(id);
+  db.prepare('DELETE FROM properties WHERE id = ?').run(id);
   res.json({ success: true });
 });
 
