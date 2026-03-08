@@ -376,6 +376,7 @@ function renderProperties(container) {
     + '<th data-sort="units" class="text-right">Units <span class="sort-icon">&#8597;</span></th>'
     + '<th class="text-right">Total Rent</th>'
     + '<th>Status</th>'
+    + '<th>Actions</th>'
     + '</tr></thead><tbody id="properties-tbody"></tbody></table></div></div>';
 
   fillPropertiesTable();
@@ -391,7 +392,9 @@ function fillPropertiesTable() {
     var totalRent = DATA.tenants.filter(function(t) { return (t.property_id || t.propertyId) === pid && t.status === 'active'; }).reduce(function(s, t) { return s + (t.monthly_rent || t.monthlyRent || 0); }, 0);
     var activeUnits = DATA.tenants.filter(function(t) { return (t.property_id || t.propertyId) === pid && t.status === 'active'; }).length;
     var statusBadge = activeUnits > 0 ? '<span class="badge badge-paid">Active</span>' : '<span class="badge badge-inactive">Vacant</span>';
-    tbody.innerHTML += '<tr class="clickable-row" onclick="navigateTo(\'properties/' + pid + '\')"><td><strong>' + escapeHtml(p.name) + '</strong></td><td>' + escapeHtml(p.address) + '</td><td>' + escapeHtml(p.city) + ', ' + escapeHtml(p.state) + '</td><td>' + escapeHtml(p.type) + '</td><td class="text-right">' + p.units + '</td><td class="text-right amount">' + fmt(totalRent) + '/mo</td><td>' + statusBadge + '</td></tr>';
+    tbody.innerHTML += '<tr class="clickable-row"><td onclick="navigateTo(\'properties/' + pid + '\')"><strong>' + escapeHtml(p.name) + '</strong></td><td onclick="navigateTo(\'properties/' + pid + '\')">' + escapeHtml(p.address) + '</td><td onclick="navigateTo(\'properties/' + pid + '\')">' + escapeHtml(p.city) + ', ' + escapeHtml(p.state) + '</td><td onclick="navigateTo(\'properties/' + pid + '\')">' + escapeHtml(p.type) + '</td><td onclick="navigateTo(\'properties/' + pid + '\')" class="text-right">' + p.units + '</td><td onclick="navigateTo(\'properties/' + pid + '\')" class="text-right amount">' + fmt(totalRent) + '/mo</td><td onclick="navigateTo(\'properties/' + pid + '\')">' + statusBadge + '</td>'
+      + '<td class="actions-cell"><button class="btn-icon" onclick="event.stopPropagation(); openEditPropertyModal(' + pid + ')" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+      + '<button class="btn-icon btn-icon-danger" onclick="event.stopPropagation(); deleteProperty(' + pid + ', \'' + escapeHtml(p.name).replace(/'/g, "\\'") + '\')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td></tr>';
   });
 }
 
@@ -852,6 +855,12 @@ function openEditPropertyModal(propId) {
     closeModal();
     renderPage(currentPage);
   });
+}
+
+async function deleteProperty(id, name) {
+  if (!confirm('Delete property "' + name + '"? This will also remove all tenants, payments, and expenses for this property.')) return;
+  await api('/api/properties/' + id, { method: 'DELETE' });
+  renderPage('properties');
 }
 
 function openAddTenantModal() {
